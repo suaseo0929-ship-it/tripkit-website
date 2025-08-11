@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaArrowLeft, FaArrowRight, FaCheck } from 'react-icons/fa';
+import { FaArrowLeft, FaArrowRight, FaCheck, FaGlobeAsia, FaMapMarkedAlt, FaPlane, FaHeart, FaStar } from 'react-icons/fa';
 
 const TestContainer = styled.div`
   min-height: 100vh;
@@ -416,23 +416,26 @@ const questions = [
 ];
 
 const destinations = {
+  // 국내 여행지
   domestic: [
     { name: '제주도', description: '자연과 휴양의 완벽한 조화', tags: ['자연', '휴양', '드라이브'], type: 'domestic' },
     { name: '부산', description: '바다와 도시의 매력', tags: ['해변', '도시', '맛집'], type: 'domestic' },
     { name: '강릉', description: '커피와 바다의 도시', tags: ['바다', '커피', '휴양'], type: 'domestic' },
-    { name: '경주', description: '살아있는 역사 박물관', tags: ['역사', '문화', '유적'], type: 'domestic' }
+    { name: '경주', description: '살아있는 역사 박물관', tags: ['역사', '문화', '유적'], type: 'domestic' },
   ],
+  // 아시아 여행지
   asia: [
     { name: '도쿄', description: '전통과 현대의 완벽한 조화', tags: ['도시', '문화', '쇼핑'], type: 'asia' },
     { name: '발리', description: '신들의 섬에서 누리는 휴양', tags: ['휴양', '자연', '스파'], type: 'asia' },
     { name: '방콕', description: '황금빛 사원과 스트릿푸드', tags: ['문화', '음식', '야시장'], type: 'asia' },
-    { name: '싱가포르', description: '깨끗하고 안전한 도시국가', tags: ['도시', '안전', '다양성'], type: 'asia' }
+    { name: '싱가포르', description: '깨끗하고 안전한 도시국가', tags: ['도시', '안전', '다양성'], type: 'asia' },
   ],
+  // 국제 여행지
   international: [
     { name: '파리', description: '로맨스와 예술의 도시', tags: ['로맨틱', '예술', '문화'], type: 'international' },
     { name: '뉴욕', description: '꿈의 도시, 무한한 가능성', tags: ['도시', '문화', '쇼핑'], type: 'international' },
     { name: '런던', description: '역사와 현대가 공존하는 도시', tags: ['역사', '문화', '박물관'], type: 'international' },
-    { name: '로마', description: '영원한 도시의 감동', tags: ['역사', '문화', '유적'], type: 'international' }
+    { name: '로마', description: '영원한 도시의 감동', tags: ['역사', '문화', '유적'], type: 'international' },
   ]
 };
 
@@ -466,6 +469,7 @@ const TravelTestPage: React.FC = () => {
   const getRecommendations = () => {
     const scores: { [key: string]: number } = {};
     
+    // 점수 계산
     Object.entries(answers).forEach(([questionId, answerId]) => {
       const question = questions.find(q => q.id === parseInt(questionId) + 1);
       const option = question?.options.find(o => o.id === answerId);
@@ -477,6 +481,7 @@ const TravelTestPage: React.FC = () => {
       }
     });
 
+    // 여행 타입 결정
     const domesticScore = (scores.domestic || 0);
     const asiaScore = (scores.asia || 0) + (scores.international || 0) * 0.3;
     const internationalScore = (scores.international || 0);
@@ -490,12 +495,14 @@ const TravelTestPage: React.FC = () => {
       travelType = 'asia';
     }
 
+    // 성향 분석
     if (scores.adventure > 15) personalityType = '모험가형 여행자';
     else if (scores.relaxed > 15) personalityType = '휴양형 여행자';
     else if (scores.cultural > 10) personalityType = '문화탐방형 여행자';
     else if (scores.luxury > 10) personalityType = '럭셔리 여행자';
     else if (scores.budget > 10) personalityType = '가성비 여행자';
 
+    // 추천 여행지 선택
     const recommendedDestinations = destinations[travelType as keyof typeof destinations] || destinations.domestic;
     
     return {
