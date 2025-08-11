@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -538,11 +538,12 @@ const TravelTestPage: React.FC = () => {
   const [debugMode, setDebugMode] = useState(false);
   const router = useRouter();
 
-  // 🔧 동적으로 질문 필터링 (개선된 로직)
-  const getFilteredQuestions = () => {
+  // 🔧 동적으로 질문 필터링 (수정된 로직)
+  const filteredQuestions = useMemo(() => {
     const allAnswerValues = Object.values(answers).flat();
+    console.log('🔍 Current answers:', allAnswerValues);
     
-    return allQuestions.filter(question => {
+    const filtered = allQuestions.filter(question => {
       // skipIf 조건 체크 - 특정 답변이 있으면 해당 질문 스킵
       if (question.condition?.skipIf) {
         const shouldSkip = question.condition.skipIf.some(skipValue => 
@@ -567,9 +568,10 @@ const TravelTestPage: React.FC = () => {
       
       return true;
     });
-  };
-
-  const filteredQuestions = getFilteredQuestions();
+    
+    console.log(`📊 Filtered questions: ${allQuestions.length} → ${filtered.length}`);
+    return filtered;
+  }, [answers]);
 
   // 🔧 동적 질문 필터링에 따른 상태 관리 개선
   useEffect(() => {
@@ -586,7 +588,7 @@ const TravelTestPage: React.FC = () => {
     }
     
     console.log(`📊 Questions: ${allQuestions.length} → ${filteredCount} (current: ${currentQuestion})`);
-  }, [filteredQuestions.length, currentQuestion, allQuestions.length]);
+  }, [filteredQuestions.length, allQuestions.length]);
 
   const handleOptionSelect = (optionId: string) => {
     const currentQ = filteredQuestions[currentQuestion];
@@ -606,16 +608,10 @@ const TravelTestPage: React.FC = () => {
         ...prev,
         [currentQ.id]: optionId
       }));
-      
-      // 🔧 단일 선택 질문의 경우 답변 후 자동으로 다음으로 이동 (선택사항)
-      // setTimeout(() => {
-      //   if (currentQuestion < filteredQuestions.length - 1) {
-      //     handleNext();
-      //   }
-      // }, 500);
     }
     
     console.log(`✅ Selected: ${optionId} for question ${currentQ.id}`);
+    console.log(`🔄 Answers updated, will trigger re-filtering...`);
   };
 
   const handleNext = () => {
@@ -814,24 +810,27 @@ const TravelTestPage: React.FC = () => {
             />
           </ProgressBar>
           
-          <QuestionNumber>
-            질문 {currentQuestion + 1} / {filteredQuestions.length}
-            {/* 🔧 동적 흐름 디버그 정보 */}
-            <span style={{ fontSize: '0.7rem', color: '#64748b', marginLeft: '1rem' }}>
-              (전체 {allQuestions.length}개 중 {filteredQuestions.length}개 활성)
-            </span>
-            {debugMode && (
-              <>
-                <br />
-                <span style={{ fontSize: '0.7rem', color: '#10b981', marginTop: '0.5rem', display: 'block' }}>
-                  🔧 동적 흐름: {currentQ.condition?.skipIf ? `스킵 조건: ${currentQ.condition.skipIf.join(', ')}` : '조건 없음'}
-                </span>
-                <span style={{ fontSize: '0.7rem', color: '#f59e0b', marginTop: '0.25rem', display: 'block' }}>
-                  📝 현재 답변: {JSON.stringify(answers)}
-                </span>
-              </>
-            )}
-          </QuestionNumber>
+                     <QuestionNumber>
+             질문 {currentQuestion + 1} / {filteredQuestions.length}
+             {/* 🔧 동적 흐름 디버그 정보 */}
+             <span style={{ fontSize: '0.7rem', color: '#64748b', marginLeft: '1rem' }}>
+               (전체 {allQuestions.length}개 중 {filteredQuestions.length}개 활성)
+             </span>
+             {debugMode && (
+               <>
+                 <br />
+                 <span style={{ fontSize: '0.7rem', color: '#10b981', marginTop: '0.5rem', display: 'block' }}>
+                   🔧 동적 흐름: {currentQ.condition?.skipIf ? `스킵 조건: ${currentQ.condition.skipIf.join(', ')}` : '조건 없음'}
+                 </span>
+                 <span style={{ fontSize: '0.7rem', color: '#f59e0b', marginTop: '0.25rem', display: 'block' }}>
+                   📝 현재 답변: {JSON.stringify(answers)}
+                 </span>
+                 <span style={{ fontSize: '0.7rem', color: '#ef4444', marginTop: '0.25rem', display: 'block' }}>
+                   🎯 스킵된 질문: {allQuestions.filter(q => q.condition?.skipIf && Object.values(answers).flat().some(ans => q.condition!.skipIf!.includes(ans))).map(q => q.id).join(', ') || '없음'}
+                 </span>
+               </>
+             )}
+           </QuestionNumber>
           
           <QuestionTitle>{currentQ.question}</QuestionTitle>
           
