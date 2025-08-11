@@ -826,6 +826,10 @@ const TravelTestPage: React.FC = () => {
           
           <NavButton
             onClick={handleNext}
+<<<<<<< HEAD
+=======
+            $disabled={!isAnswerSelected()}
+>>>>>>> f722dd3e281f02161164e9bd7f40b2f7ddfc8743
             disabled={!isAnswerSelected()}
           >
             {currentQuestion === filteredQuestions.length - 1 ? '결과 보기' : '다음'}
