@@ -535,30 +535,32 @@ const TravelTestPage: React.FC = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<{ [key: number]: string | string[] }>({});
   const [showResult, setShowResult] = useState(false);
+  const [debugMode, setDebugMode] = useState(false);
   const router = useRouter();
 
-  // 🔧 동적으로 질문 필터링 (수정된 로직)
+  // 🔧 동적으로 질문 필터링 (개선된 로직)
   const getFilteredQuestions = () => {
     const allAnswerValues = Object.values(answers).flat();
     
     return allQuestions.filter(question => {
-      // skipIf 조건 체크
+      // skipIf 조건 체크 - 특정 답변이 있으면 해당 질문 스킵
       if (question.condition?.skipIf) {
         const shouldSkip = question.condition.skipIf.some(skipValue => 
           allAnswerValues.includes(skipValue)
         );
         if (shouldSkip) {
-          console.log(`Skipping question ${question.id}: ${question.question}`);
+          console.log(`🚫 Skipping question ${question.id}: ${question.question} (skipIf: ${question.condition.skipIf})`);
           return false;
         }
       }
       
-      // showIf 조건 체크 (현재는 사용하지 않음)
+      // showIf 조건 체크 - 특정 답변이 있어야만 해당 질문 표시
       if (question.condition?.showIf) {
         const shouldShow = question.condition.showIf.some(showValue => 
           allAnswerValues.includes(showValue)
         );
         if (!shouldShow) {
+          console.log(`👁️ Hiding question ${question.id}: ${question.question} (showIf: ${question.condition.showIf})`);
           return false;
         }
       }
@@ -569,12 +571,22 @@ const TravelTestPage: React.FC = () => {
 
   const filteredQuestions = getFilteredQuestions();
 
-  // 현재 질문 인덱스 조정
+  // 🔧 동적 질문 필터링에 따른 상태 관리 개선
   useEffect(() => {
-    if (currentQuestion >= filteredQuestions.length && filteredQuestions.length > 0) {
-      setCurrentQuestion(Math.max(0, filteredQuestions.length - 1));
+    const filteredCount = filteredQuestions.length;
+    
+    // 필터링된 질문 수가 변경되면 현재 질문 인덱스 조정
+    if (filteredCount > 0) {
+      if (currentQuestion >= filteredCount) {
+        setCurrentQuestion(filteredCount - 1);
+      }
+    } else {
+      // 필터링된 질문이 없으면 첫 번째 질문으로
+      setCurrentQuestion(0);
     }
-  }, [filteredQuestions.length, currentQuestion]);
+    
+    console.log(`📊 Questions: ${allQuestions.length} → ${filteredCount} (current: ${currentQuestion})`);
+  }, [filteredQuestions.length, currentQuestion, allQuestions.length]);
 
   const handleOptionSelect = (optionId: string) => {
     const currentQ = filteredQuestions[currentQuestion];
@@ -594,7 +606,16 @@ const TravelTestPage: React.FC = () => {
         ...prev,
         [currentQ.id]: optionId
       }));
+      
+      // 🔧 단일 선택 질문의 경우 답변 후 자동으로 다음으로 이동 (선택사항)
+      // setTimeout(() => {
+      //   if (currentQuestion < filteredQuestions.length - 1) {
+      //     handleNext();
+      //   }
+      // }, 500);
     }
+    
+    console.log(`✅ Selected: ${optionId} for question ${currentQ.id}`);
   };
 
   const handleNext = () => {
@@ -762,6 +783,29 @@ const TravelTestPage: React.FC = () => {
         transition={{ duration: 0.5 }}
       >
         <div>
+          {/* 🔧 디버그 모드 토글 */}
+          <div style={{ 
+            position: 'absolute', 
+            top: '1rem', 
+            right: '1rem', 
+            zIndex: 10 
+          }}>
+            <button
+              onClick={() => setDebugMode(!debugMode)}
+              style={{
+                background: debugMode ? '#10b981' : '#64748b',
+                color: 'white',
+                border: 'none',
+                padding: '0.5rem 1rem',
+                borderRadius: '20px',
+                fontSize: '0.8rem',
+                cursor: 'pointer'
+              }}
+            >
+              {debugMode ? '🔧 디버그 ON' : '🔧 디버그 OFF'}
+            </button>
+          </div>
+          
           <ProgressBar>
             <ProgressFill
               initial={{ width: 0 }}
@@ -772,10 +816,21 @@ const TravelTestPage: React.FC = () => {
           
           <QuestionNumber>
             질문 {currentQuestion + 1} / {filteredQuestions.length}
-            {/* 🔧 디버그 정보 */}
+            {/* 🔧 동적 흐름 디버그 정보 */}
             <span style={{ fontSize: '0.7rem', color: '#64748b', marginLeft: '1rem' }}>
               (전체 {allQuestions.length}개 중 {filteredQuestions.length}개 활성)
             </span>
+            {debugMode && (
+              <>
+                <br />
+                <span style={{ fontSize: '0.7rem', color: '#10b981', marginTop: '0.5rem', display: 'block' }}>
+                  🔧 동적 흐름: {currentQ.condition?.skipIf ? `스킵 조건: ${currentQ.condition.skipIf.join(', ')}` : '조건 없음'}
+                </span>
+                <span style={{ fontSize: '0.7rem', color: '#f59e0b', marginTop: '0.25rem', display: 'block' }}>
+                  📝 현재 답변: {JSON.stringify(answers)}
+                </span>
+              </>
+            )}
           </QuestionNumber>
           
           <QuestionTitle>{currentQ.question}</QuestionTitle>
@@ -826,10 +881,6 @@ const TravelTestPage: React.FC = () => {
           
           <NavButton
             onClick={handleNext}
-<<<<<<< HEAD
-=======
-            $disabled={!isAnswerSelected()}
->>>>>>> f722dd3e281f02161164e9bd7f40b2f7ddfc8743
             disabled={!isAnswerSelected()}
           >
             {currentQuestion === filteredQuestions.length - 1 ? '결과 보기' : '다음'}
