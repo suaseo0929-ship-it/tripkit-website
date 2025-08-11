@@ -244,8 +244,8 @@ interface Question {
   subtitle?: string;
   type: 'single' | 'multiple';
   condition?: {
-    skipIf?: string[];  // 이 값들이 선택되면 질문 스킵
-    showIf?: string[];  // 이 값들이 선택되면 질문 보여줌
+    skipIf?: string[];
+    showIf?: string[];
   };
   options: Option[];
 }
@@ -357,7 +357,7 @@ const allQuestions: Question[] = [
     id: 10,
     question: "언어 소통에 대한 부담은?",
     type: 'single',
-    condition: { skipIf: ['domestic'] }, // 국내 여행 선택시 스킵
+    condition: { skipIf: ['domestic'] },
     options: [
       { id: 'anxious', text: "언어 소통이 큰 부담", score: { domestic: 3, safe: 4 } },
       { id: 'careful', text: "기본 영어나 번역앱으로", score: { moderate: 5 } },
@@ -370,7 +370,7 @@ const allQuestions: Question[] = [
     id: 11,
     question: "문화 차이에 대한 태도는?",
     type: 'single',
-    condition: { skipIf: ['domestic'] }, // 국내 여행 선택시 스킵
+    condition: { skipIf: ['domestic'] },
     options: [
       { id: 'similar', text: "비슷한 문화권이 편함", score: { safe: 4, asia: 3 } },
       { id: 'curious', text: "약간 다른 문화 흥미로움", score: { moderate: 5, cultural: 2 } },
@@ -464,7 +464,7 @@ const allQuestions: Question[] = [
     id: 19,
     question: "해외 여행 시 비행시간은?",
     type: 'single',
-    condition: { skipIf: ['domestic'] }, // 국내 여행 선택시 스킵
+    condition: { skipIf: ['domestic'] },
     options: [
       { id: 'short', text: "3시간 이내 (동북아)", score: { asia: 5, comfort: 2 } },
       { id: 'medium', text: "3-6시간 (동남아)", score: { asia: 4, moderate: 3 } },
@@ -477,40 +477,12 @@ const allQuestions: Question[] = [
     id: 20,
     question: "번거로운 절차(비자 등)에 대한 태도는?",
     type: 'single',
-    condition: { skipIf: ['domestic'] }, // 국내 여행 선택시 스킵
+    condition: { skipIf: ['domestic'] },
     options: [
       { id: 'avoid', text: "무비자 국가만", score: { simple: 5, asia: 2 } },
       { id: 'easy', text: "간단한 비자는 OK", score: { moderate: 5 } },
       { id: 'complex', text: "복잡한 비자도 상관없음", score: { international: 4, dedicated: 3 } },
       { id: 'extreme', text: "어떤 절차든 감수", score: { explorer: 5, adventure: 3 } }
-    ]
-  },
-  // 🔥 커플 여행자만을 위한 추가 질문
-  {
-    id: 21,
-    question: "커플 여행에서 가장 중요한 것은?",
-    subtitle: "연인/배우자와 함께 선택한 분만 답변해주세요",
-    type: 'single',
-    condition: { showIf: ['couple'] }, // 커플 선택시에만 보여줌
-    options: [
-      { id: 'romantic_view', text: "로맨틱한 뷰/석양", score: { romantic: 8, nature: 3 } },
-      { id: 'luxury_dining', text: "고급 레스토랑", score: { luxury: 5, romantic: 5 } },
-      { id: 'private_time', text: "둘만의 프라이빗 시간", score: { private: 8, intimate: 5 } },
-      { id: 'photo_spots', text: "커플 인증샷 명소", score: { trendy: 5, memorable: 5 } }
-    ]
-  },
-  // 🔥 가족 여행자만을 위한 추가 질문
-  {
-    id: 22,
-    question: "가족 여행에서 가장 우선순위는?",
-    subtitle: "가족과 함께 선택한 분만 답변해주세요",
-    type: 'single',
-    condition: { showIf: ['family_kids', 'family_parents'] }, // 가족 선택시에만 보여줌
-    options: [
-      { id: 'safety_first', text: "안전이 최우선", score: { safe: 10, comfort: 3 } },
-      { id: 'convenience', text: "편의시설 완비", score: { comfort: 8, family: 5 } },
-      { id: 'education', text: "교육적 가치", score: { cultural: 8, learning: 5 } },
-      { id: 'fun_together', text: "온 가족이 즐길 수 있는 활동", score: { fun: 8, active: 3 } }
     ]
   }
 ];
@@ -553,86 +525,88 @@ const destinations: DestinationGroup = {
 };
 
 const TravelTestPage: React.FC = () => {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<{ [key: number]: string | string[] }>({});
-  const [availableQuestions, setAvailableQuestions] = useState<Question[]>([]);
   const [showResult, setShowResult] = useState(false);
   const navigate = useNavigate();
 
-  // 동적으로 질문 필터링
-  useEffect(() => {
-    const filterQuestions = () => {
-      const allAnswers = Object.values(answers).flat();
-      
-      const filtered = allQuestions.filter(question => {
-        // skipIf 조건 체크
-        if (question.condition?.skipIf) {
-          const shouldSkip = question.condition.skipIf.some(skipValue => 
-            allAnswers.includes(skipValue)
-          );
-          if (shouldSkip) return false;
+  // 🔧 동적으로 질문 필터링 (수정된 로직)
+  const getFilteredQuestions = () => {
+    const allAnswerValues = Object.values(answers).flat();
+    
+    return allQuestions.filter(question => {
+      // skipIf 조건 체크
+      if (question.condition?.skipIf) {
+        const shouldSkip = question.condition.skipIf.some(skipValue => 
+          allAnswerValues.includes(skipValue)
+        );
+        if (shouldSkip) {
+          console.log(`Skipping question ${question.id}: ${question.question}`);
+          return false;
         }
-        
-        // showIf 조건 체크
-        if (question.condition?.showIf) {
-          const shouldShow = question.condition.showIf.some(showValue => 
-            allAnswers.includes(showValue)
-          );
-          if (!shouldShow) return false;
-        }
-        
-        return true;
-      });
-      
-      setAvailableQuestions(filtered);
-      
-      // 현재 질문 인덱스 조정
-      if (currentQuestionIndex >= filtered.length && filtered.length > 0) {
-        setCurrentQuestionIndex(Math.max(0, filtered.length - 1));
       }
-    };
+      
+      // showIf 조건 체크 (현재는 사용하지 않음)
+      if (question.condition?.showIf) {
+        const shouldShow = question.condition.showIf.some(showValue => 
+          allAnswerValues.includes(showValue)
+        );
+        if (!shouldShow) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  };
 
-    filterQuestions();
-  }, [answers, currentQuestionIndex]);
+  const filteredQuestions = getFilteredQuestions();
+
+  // 현재 질문 인덱스 조정
+  useEffect(() => {
+    if (currentQuestion >= filteredQuestions.length && filteredQuestions.length > 0) {
+      setCurrentQuestion(Math.max(0, filteredQuestions.length - 1));
+    }
+  }, [filteredQuestions.length, currentQuestion]);
 
   const handleOptionSelect = (optionId: string) => {
-    const currentQuestion = availableQuestions[currentQuestionIndex];
+    const currentQ = filteredQuestions[currentQuestion];
     
-    if (currentQuestion.type === 'multiple') {
-      const currentAnswers = (answers[currentQuestion.id] as string[]) || [];
+    if (currentQ.type === 'multiple') {
+      const currentAnswers = (answers[currentQ.id] as string[]) || [];
       const newAnswers = currentAnswers.includes(optionId)
         ? currentAnswers.filter(id => id !== optionId)
         : [...currentAnswers, optionId];
       
       setAnswers(prev => ({
         ...prev,
-        [currentQuestion.id]: newAnswers
+        [currentQ.id]: newAnswers
       }));
     } else {
       setAnswers(prev => ({
         ...prev,
-        [currentQuestion.id]: optionId
+        [currentQ.id]: optionId
       }));
     }
   };
 
   const handleNext = () => {
-    if (currentQuestionIndex < availableQuestions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
+    if (currentQuestion < filteredQuestions.length - 1) {
+      setCurrentQuestion(prev => prev + 1);
     } else {
       setShowResult(true);
     }
   };
 
   const handlePrevious = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev - 1);
+    if (currentQuestion > 0) {
+      setCurrentQuestion(prev => prev - 1);
     }
   };
 
   const getCurrentAnswers = () => {
-    const currentQuestion = availableQuestions[currentQuestionIndex];
-    return answers[currentQuestion?.id] || (currentQuestion?.type === 'multiple' ? [] : '');
+    const currentQ = filteredQuestions[currentQuestion];
+    return answers[currentQ?.id] || (currentQ?.type === 'multiple' ? [] : '');
   };
 
   const isAnswerSelected = () => {
@@ -759,7 +733,7 @@ const TravelTestPage: React.FC = () => {
     );
   }
 
-  if (availableQuestions.length === 0) {
+  if (filteredQuestions.length === 0) {
     return (
       <TestContainer>
         <TestCard>
@@ -769,9 +743,9 @@ const TravelTestPage: React.FC = () => {
     );
   }
 
-  const currentQuestion = availableQuestions[currentQuestionIndex];
+  const currentQ = filteredQuestions[currentQuestion];
   const currentAnswers = getCurrentAnswers();
-  const progress = ((currentQuestionIndex + 1) / availableQuestions.length) * 100;
+  const progress = ((currentQuestion + 1) / filteredQuestions.length) * 100;
 
   return (
     <TestContainer>
@@ -790,18 +764,22 @@ const TravelTestPage: React.FC = () => {
           </ProgressBar>
           
           <QuestionNumber>
-            질문 {currentQuestionIndex + 1} / {availableQuestions.length}
+            질문 {currentQuestion + 1} / {filteredQuestions.length}
+            {/* 🔧 디버그 정보 */}
+            <span style={{ fontSize: '0.7rem', color: '#64748b', marginLeft: '1rem' }}>
+              (전체 {allQuestions.length}개 중 {filteredQuestions.length}개 활성)
+            </span>
           </QuestionNumber>
           
-          <QuestionTitle>{currentQuestion.question}</QuestionTitle>
+          <QuestionTitle>{currentQ.question}</QuestionTitle>
           
-          {currentQuestion.subtitle && (
-            <QuestionSubtitle>{currentQuestion.subtitle}</QuestionSubtitle>
+          {currentQ.subtitle && (
+            <QuestionSubtitle>{currentQ.subtitle}</QuestionSubtitle>
           )}
           
           <OptionsContainer>
             <AnimatePresence mode="wait">
-              {currentQuestion.options.map((option, index) => {
+              {currentQ.options.map((option, index) => {
                 const isSelected = Array.isArray(currentAnswers) 
                   ? currentAnswers.includes(option.id)
                   : currentAnswers === option.id;
@@ -810,7 +788,7 @@ const TravelTestPage: React.FC = () => {
                   <OptionButton
                     key={option.id}
                     $selected={isSelected}
-                    $multiple={currentQuestion.type === 'multiple'}
+                    $multiple={currentQ.type === 'multiple'}
                     onClick={() => handleOptionSelect(option.id)}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -818,7 +796,7 @@ const TravelTestPage: React.FC = () => {
                     whileHover={{ scale: 1.02 }}
                   >
                     {option.text}
-                    {isSelected && currentQuestion.type === 'single' && (
+                    {isSelected && currentQ.type === 'single' && (
                       <SelectedIcon>
                         <FaCheck />
                       </SelectedIcon>
@@ -833,8 +811,8 @@ const TravelTestPage: React.FC = () => {
         <NavigationButtons>
           <NavButton
             onClick={handlePrevious}
-            $disabled={currentQuestionIndex === 0}
-            disabled={currentQuestionIndex === 0}
+            $disabled={currentQuestion === 0}
+            disabled={currentQuestion === 0}
           >
             <FaArrowLeft />
             이전
@@ -845,7 +823,7 @@ const TravelTestPage: React.FC = () => {
             $disabled={!isAnswerSelected()}
             disabled={!isAnswerSelected()}
           >
-            {currentQuestionIndex === availableQuestions.length - 1 ? '결과 보기' : '다음'}
+            {currentQuestion === filteredQuestions.length - 1 ? '결과 보기' : '다음'}
             <FaArrowRight />
           </NavButton>
         </NavigationButtons>
