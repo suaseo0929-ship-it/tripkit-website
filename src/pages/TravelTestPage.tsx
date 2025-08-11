@@ -542,6 +542,7 @@ const TravelTestPage: React.FC = () => {
   const filteredQuestions = useMemo(() => {
     const allAnswerValues = Object.values(answers).flat();
     console.log('🔍 Current answers:', allAnswerValues);
+    console.log('🔍 Answer keys:', Object.keys(answers));
     
     const filtered = allQuestions.filter(question => {
       // skipIf 조건 체크 - 특정 답변이 있으면 해당 질문 스킵
@@ -570,6 +571,7 @@ const TravelTestPage: React.FC = () => {
     });
     
     console.log(`📊 Filtered questions: ${allQuestions.length} → ${filtered.length}`);
+    console.log(`📋 Active questions:`, filtered.map(q => q.id));
     return filtered;
   }, [answers]);
 
@@ -610,8 +612,9 @@ const TravelTestPage: React.FC = () => {
       }));
     }
     
-    console.log(`✅ Selected: ${optionId} for question ${currentQ.id}`);
-    console.log(`🔄 Answers updated, will trigger re-filtering...`);
+    console.log(`✅ Selected: ${optionId} for question ${currentQ.id} (original ID)`);
+    console.log(`🔄 Answers updated:`, { ...answers, [currentQ.id]: optionId });
+    console.log(`🔍 Will trigger re-filtering for answers:`, Object.values({ ...answers, [currentQ.id]: optionId }).flat());
   };
 
   const handleNext = () => {
@@ -827,6 +830,12 @@ const TravelTestPage: React.FC = () => {
                  </span>
                  <span style={{ fontSize: '0.7rem', color: '#ef4444', marginTop: '0.25rem', display: 'block' }}>
                    🎯 스킵된 질문: {allQuestions.filter(q => q.condition?.skipIf && Object.values(answers).flat().some(ans => q.condition!.skipIf!.includes(ans))).map(q => q.id).join(', ') || '없음'}
+                 </span>
+                 <span style={{ fontSize: '0.7rem', color: '#8b5cf6', marginTop: '0.25rem', display: 'block' }}>
+                   🔍 현재 질문 ID: {currentQ.id} (전체 {allQuestions.length}개 중)
+                 </span>
+                 <span style={{ fontSize: '0.7rem', color: '#06b6d4', marginTop: '0.25rem', display: 'block' }}>
+                   📊 필터링 결과: {filteredQuestions.length}개 (원본: {allQuestions.length}개)
                  </span>
                </>
              )}
