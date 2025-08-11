@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { FaMapMarkedAlt, FaHeart, FaUsers, FaLeaf, FaUtensils, FaCamera, FaUserFriends, FaEdit, FaPlus } from 'react-icons/fa';
+import { FaBrain, FaGlobeAsia, FaMapMarkedAlt, FaHeart, FaUsers, FaLeaf, FaStar, FaCheck, FaArrowRight } from 'react-icons/fa';
 
 const HomeContainer = styled.div`
   min-height: 100vh;
@@ -11,7 +11,7 @@ const HomeContainer = styled.div`
 const HeroSection = styled.section`
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 6rem 2rem;
+  padding: 8rem 2rem;
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -25,7 +25,7 @@ const HeroContent = styled.div`
 `;
 
 const HeroTitle = styled.h1`
-  font-size: 3.5rem;
+  font-size: 4rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
   line-height: 1.2;
@@ -36,85 +36,86 @@ const HeroTitle = styled.h1`
 `;
 
 const HeroSubtitle = styled.p`
-  font-size: 1.3rem;
-  margin-bottom: 3rem;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
   opacity: 0.9;
-  max-width: 600px;
+  max-width: 700px;
   margin-left: auto;
   margin-right: auto;
 `;
 
-const CTAButtons = styled.div`
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
+const HeroDescription = styled.p`
+  font-size: 1.1rem;
+  margin-bottom: 3rem;
+  opacity: 0.8;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
 `;
 
-const PrimaryButton = styled(Link)`
+const CTAButton = styled(Link)`
   background: white;
   color: #667eea;
-  padding: 1rem 2rem;
+  padding: 1.5rem 3rem;
   border-radius: 50px;
-  font-weight: 600;
-  font-size: 1.1rem;
+  font-weight: 700;
+  font-size: 1.3rem;
   text-decoration: none;
   transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
   
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
   }
 `;
 
-const SecondaryButton = styled(Link)`
-  background: transparent;
-  color: white;
-  padding: 1rem 2rem;
-  border-radius: 50px;
-  font-weight: 600;
-  font-size: 1.1rem;
-  text-decoration: none;
-  border: 2px solid white;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    background: white;
-    color: #667eea;
-    transform: translateY(-3px);
-  }
-`;
-
-const TravelStyleSection = styled.section`
-  padding: 5rem 2rem;
+const FeaturesSection = styled.section`
+  padding: 6rem 2rem;
   background: #f8fafc;
+`;
+
+const FeaturesContainer = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
 `;
 
 const SectionTitle = styled.h2`
   text-align: center;
   font-size: 2.5rem;
   font-weight: 700;
-  margin-bottom: 3rem;
+  margin-bottom: 1rem;
   color: #1e293b;
 `;
 
-const StyleGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+const SectionSubtitle = styled.p`
+  text-align: center;
+  font-size: 1.2rem;
+  color: #64748b;
+  margin-bottom: 4rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 `;
 
-const StyleCard = styled(motion.div)<{ $isCustom?: boolean }>`
+const FeaturesGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 3rem;
+  margin-bottom: 4rem;
+`;
+
+const FeatureCard = styled(motion.div)`
   background: white;
-  padding: 2rem;
+  padding: 3rem 2rem;
   border-radius: 20px;
   text-align: center;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
   transition: all 0.3s ease;
-  border: ${props => props.$isCustom ? '2px dashed #667eea' : 'none'};
   
   &:hover {
     transform: translateY(-10px);
@@ -122,99 +123,105 @@ const StyleCard = styled(motion.div)<{ $isCustom?: boolean }>`
   }
 `;
 
-const StyleIcon = styled.div`
+const FeatureIcon = styled.div`
   font-size: 3rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   color: #667eea;
 `;
 
-const StyleTitle = styled.h3`
-  font-size: 1.3rem;
+const FeatureTitle = styled.h3`
+  font-size: 1.5rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
   color: #1e293b;
 `;
 
-const StyleDescription = styled.p`
+const FeatureDescription = styled.p`
   color: #64748b;
   line-height: 1.6;
+  font-size: 1.1rem;
 `;
 
-const CustomInputContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-top: 1rem;
+const StatsSection = styled.div`
+  background: white;
+  padding: 4rem 2rem;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 `;
 
-const CustomInput = styled.input`
-  padding: 0.75rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
-  font-size: 1rem;
-  outline: none;
-  
-  &:focus {
-    border-color: #667eea;
-  }
+const StatsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  text-align: center;
 `;
 
-const AddCustomButton = styled.button`
-  background: #10b981;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  
-  &:hover {
-    background: #059669;
-    transform: translateY(-2px);
-  }
+const StatItem = styled.div`
+  padding: 1.5rem;
 `;
 
-const KeywordSection = styled.section`
-  padding: 5rem 2rem;
+const StatNumber = styled.div`
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #667eea;
+  margin-bottom: 0.5rem;
+`;
+
+const StatLabel = styled.div`
+  font-size: 1.1rem;
+  color: #64748b;
+  font-weight: 500;
+`;
+
+const BenefitsSection = styled.section`
+  padding: 6rem 2rem;
   background: white;
 `;
 
-const KeywordGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  max-width: 1200px;
+const BenefitsList = styled.div`
+  max-width: 800px;
   margin: 0 auto;
+  display: grid;
+  gap: 2rem;
 `;
 
-const KeywordCard = styled(motion.div)<{ $selected?: boolean }>`
-  background: ${props => props.$selected ? '#667eea' : '#f1f5f9'};
-  color: ${props => props.$selected ? 'white' : '#1e293b'};
-  padding: 1.5rem;
+const BenefitItem = styled(motion.div)`
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem;
+  background: #f8fafc;
   border-radius: 15px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 600;
-  
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  }
+  border-left: 5px solid #667eea;
 `;
 
-const RecommendationSection = styled.section`
-  padding: 5rem 2rem;
+const BenefitIcon = styled.div`
+  background: #667eea;
+  color: white;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+`;
+
+const BenefitText = styled.div`
+  font-size: 1.2rem;
+  color: #1e293b;
+  font-weight: 500;
+`;
+
+const DestinationsPreview = styled.section`
+  padding: 6rem 2rem;
   background: #f8fafc;
 `;
 
 const DestinationGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 2rem;
   max-width: 1200px;
   margin: 0 auto;
@@ -225,23 +232,22 @@ const DestinationCard = styled(motion.div)`
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
   transition: all 0.3s ease;
   
   &:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
   }
 `;
 
-const DestinationImage = styled.div`
-  height: 200px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+const DestinationImage = styled.div<{ $bgColor: string }>`
+  height: 150px;
+  background: ${props => props.$bgColor};
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
 `;
 
@@ -249,8 +255,8 @@ const DestinationContent = styled.div`
   padding: 1.5rem;
 `;
 
-const DestinationTitle = styled.h3`
-  font-size: 1.3rem;
+const DestinationName = styled.h4`
+  font-size: 1.2rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
   color: #1e293b;
@@ -258,118 +264,44 @@ const DestinationTitle = styled.h3`
 
 const DestinationDescription = styled.p`
   color: #64748b;
-  line-height: 1.6;
-  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
 `;
 
-const DestinationTags = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-`;
-
-const Tag = styled.span`
-  background: #e2e8f0;
-  color: #475569;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 500;
-`;
-
-const travelStyles = [
+const features = [
   {
-    id: 'family-kids',
-    title: '아이와 함께',
-    description: '아이들이 좋아할 만한 장소와 활동을 중심으로 한 여행',
-    icon: <FaUsers />
+    icon: <FaBrain />,
+    title: '20가지 정밀 진단',
+    description: '당신의 여행 성향, 예산, 선호도를 정확히 분석하여 완벽한 매칭을 제공합니다.'
   },
   {
-    id: 'family-parents',
-    title: '부모님과 함께',
-    description: '부모님이 편안하게 즐길 수 있는 여유로운 여행',
-    icon: <FaUserFriends />
+    icon: <FaGlobeAsia />,
+    title: '전 세계 여행지',
+    description: '국내 숨겨진 명소부터 해외 핫플레이스까지, 당신만을 위한 특별한 여행지를 추천합니다.'
   },
   {
-    id: 'couple',
-    title: '커플 여행',
-    description: '로맨틱하고 특별한 추억을 만들 수 있는 여행',
-    icon: <FaHeart />
-  },
-  {
-    id: 'solo',
-    title: '나홀로',
-    description: '자유롭고 독립적인 여행을 즐길 수 있는 코스',
-    icon: <FaMapMarkedAlt />
-  },
-  {
-    id: 'group',
-    title: '친구들과',
-    description: '함께 즐기고 추억을 나눌 수 있는 여행',
-    icon: <FaUsers />
-  },
-  {
-    id: 'custom',
-    title: '직접 입력하기',
-    description: '원하는 여행 스타일을 직접 입력해보세요',
-    icon: <FaEdit />,
-    isCustom: true
+    icon: <FaMapMarkedAlt />,
+    title: '맞춤 일정 제공',
+    description: '단순 추천이 아닌 구체적인 일정과 코스, 예산 가이드까지 모든 것을 제공합니다.'
   }
 ];
 
-const keywords = [
-  '자연', '액티비티', '힐링', '맛집', '역사', '체험', '쇼핑', '문화'
+const benefits = [
+  '개인 맞춤형 20가지 정밀 질문으로 정확한 성향 파악',
+  '국내외 1000+ 여행지 데이터베이스 기반 추천',
+  '예산별, 기간별, 테마별 세분화된 맞춤 코스',
+  '실제 여행자 리뷰와 평점이 반영된 신뢰할 수 있는 정보',
+  '여행 전 준비부터 현지 팁까지 완벽한 가이드 제공'
 ];
 
-const destinations = [
-  {
-    id: 1,
-    name: '제주도',
-    description: '자연과 힐링을 동시에 즐길 수 있는 아름다운 섬',
-    tags: ['자연', '힐링', '맛집']
-  },
-  {
-    id: 2,
-    name: '부산',
-    description: '바다와 도시의 매력을 모두 느낄 수 있는 곳',
-    tags: ['맛집', '문화', '액티비티']
-  },
-  {
-    id: 3,
-    name: '강릉',
-    description: '아름다운 해안선과 맛있는 커피를 즐길 수 있는 곳',
-    tags: ['힐링', '맛집', '자연']
-  }
+const sampleDestinations = [
+  { name: '제주도', desc: '자연과 힐링의 완벽한 조화', bgColor: 'linear-gradient(135deg, #74b9ff, #0984e3)' },
+  { name: '교토', desc: '전통과 현대가 어우러진 문화의 도시', bgColor: 'linear-gradient(135deg, #fd79a8, #e84393)' },
+  { name: '발리', desc: '신들의 섬에서 즐기는 휴양', bgColor: 'linear-gradient(135deg, #fdcb6e, #e17055)' },
+  { name: '파리', desc: '로맨스와 예술의 도시', bgColor: 'linear-gradient(135deg, #a29bfe, #6c5ce7)' },
 ];
 
 const HomePage: React.FC = () => {
-  const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
-  const [selectedTravelStyle, setSelectedTravelStyle] = useState<string>('');
-  const [customTravelStyle, setCustomTravelStyle] = useState<string>('');
-  const [customStyles, setCustomStyles] = useState<string[]>([]);
-
-  const handleKeywordClick = (keyword: string) => {
-    setSelectedKeywords(prev => 
-      prev.includes(keyword) 
-        ? prev.filter(k => k !== keyword)
-        : [...prev, keyword]
-    );
-  };
-
-  const handleTravelStyleClick = (styleId: string) => {
-    setSelectedTravelStyle(styleId);
-    if (styleId !== 'custom') {
-      setCustomTravelStyle('');
-    }
-  };
-
-  const handleAddCustomStyle = () => {
-    if (customTravelStyle.trim() && !customStyles.includes(customTravelStyle.trim())) {
-      setCustomStyles(prev => [...prev, customTravelStyle.trim()]);
-      setCustomTravelStyle('');
-    }
-  };
-
   return (
     <HomeContainer>
       <HeroSection>
@@ -379,118 +311,129 @@ const HomePage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <HeroTitle>나만의 여행을 시작해보세요</HeroTitle>
+            <HeroTitle>나만의 완벽한 여행을 찾아보세요</HeroTitle>
             <HeroSubtitle>
-              AI가 추천하는 맞춤형 여행지와 함께 특별한 추억을 만들어보세요
+              AI 기반 정밀 진단으로 찾는 맞춤형 여행지
             </HeroSubtitle>
+            <HeroDescription>
+              20가지 세심한 질문을 통해 당신의 여행 DNA를 분석하고,<br />
+              전 세계에서 가장 완벽한 여행지를 추천해드립니다.
+            </HeroDescription>
           </motion.div>
           
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
           >
-            <CTAButtons>
-              <PrimaryButton to="/travel-test">여행 성향 진단하기</PrimaryButton>
-              <SecondaryButton to="/travel-test">직접 선택하기</SecondaryButton>
-            </CTAButtons>
+            <CTAButton to="/travel-test">
+              <FaBrain />
+              나의 여행 DNA 진단받기
+              <FaArrowRight />
+            </CTAButton>
           </motion.div>
         </HeroContent>
       </HeroSection>
 
-      <TravelStyleSection>
-        <SectionTitle>어떤 여행을 원하시나요?</SectionTitle>
-        <StyleGrid>
-          {travelStyles.map((style, index) => (
-            <StyleCard
-              key={style.id}
-              $isCustom={style.isCustom}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ scale: 1.05 }}
-              onClick={() => handleTravelStyleClick(style.id)}
-            >
-              <StyleIcon>{style.icon}</StyleIcon>
-              <StyleTitle>{style.title}</StyleTitle>
-              <StyleDescription>{style.description}</StyleDescription>
-              
-              {style.isCustom && selectedTravelStyle === 'custom' && (
-                <CustomInputContainer>
-                  <CustomInput
-                    type="text"
-                    placeholder="원하는 여행 스타일을 입력하세요..."
-                    value={customTravelStyle}
-                    onChange={(e) => setCustomTravelStyle(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleAddCustomStyle()}
-                  />
-                  <AddCustomButton onClick={handleAddCustomStyle}>
-                    <FaPlus />
-                    추가하기
-                  </AddCustomButton>
-                  {customStyles.length > 0 && (
-                    <div style={{ marginTop: '1rem', textAlign: 'left' }}>
-                      <strong>추가된 스타일:</strong>
-                      {customStyles.map((style, idx) => (
-                        <div key={idx} style={{ marginTop: '0.5rem', padding: '0.5rem', background: '#f1f5f9', borderRadius: '8px' }}>
-                          {style}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CustomInputContainer>
-              )}
-            </StyleCard>
-          ))}
-        </StyleGrid>
-      </TravelStyleSection>
+      <FeaturesSection>
+        <FeaturesContainer>
+          <SectionTitle>왜 TripKit을 선택해야 할까요?</SectionTitle>
+          <SectionSubtitle>
+            단순한 추천이 아닌, 과학적 분석 기반의 완벽한 매칭 시스템
+          </SectionSubtitle>
+          
+          <FeaturesGrid>
+            {features.map((feature, index) => (
+              <FeatureCard
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.2 }}
+                whileHover={{ scale: 1.05 }}
+              >
+                <FeatureIcon>{feature.icon}</FeatureIcon>
+                <FeatureTitle>{feature.title}</FeatureTitle>
+                <FeatureDescription>{feature.description}</FeatureDescription>
+              </FeatureCard>
+            ))}
+          </FeaturesGrid>
 
-      <KeywordSection>
-        <SectionTitle>관심 있는 키워드를 선택하세요</SectionTitle>
-        <KeywordGrid>
-          {keywords.map((keyword, index) => (
-            <KeywordCard
-              key={keyword}
-              $selected={selectedKeywords.includes(keyword)}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ scale: 1.05 }}
-              onClick={() => handleKeywordClick(keyword)}
-            >
-              {keyword}
-            </KeywordCard>
-          ))}
-        </KeywordGrid>
-      </KeywordSection>
+          <StatsSection>
+            <StatsGrid>
+              <StatItem>
+                <StatNumber>20+</StatNumber>
+                <StatLabel>정밀 진단 질문</StatLabel>
+              </StatItem>
+              <StatItem>
+                <StatNumber>1000+</StatNumber>
+                <StatLabel>추천 여행지</StatLabel>
+              </StatItem>
+              <StatItem>
+                <StatNumber>50+</StatNumber>
+                <StatLabel>국가별 데이터</StatLabel>
+              </StatItem>
+              <StatItem>
+                <StatNumber>98%</StatNumber>
+                <StatLabel>만족도</StatLabel>
+              </StatItem>
+            </StatsGrid>
+          </StatsSection>
+        </FeaturesContainer>
+      </FeaturesSection>
 
-      <RecommendationSection>
-        <SectionTitle>추천 여행지</SectionTitle>
-        <DestinationGrid>
-          {destinations.map((destination, index) => (
-            <DestinationCard
-              key={destination.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ scale: 1.02 }}
-            >
-              <DestinationImage>
-                {destination.name}
-              </DestinationImage>
-              <DestinationContent>
-                <DestinationTitle>{destination.name}</DestinationTitle>
-                <DestinationDescription>{destination.description}</DestinationDescription>
-                <DestinationTags>
-                  {destination.tags.map(tag => (
-                    <Tag key={tag}>{tag}</Tag>
-                  ))}
-                </DestinationTags>
-              </DestinationContent>
-            </DestinationCard>
-          ))}
-        </DestinationGrid>
-      </RecommendationSection>
+      <BenefitsSection>
+        <FeaturesContainer>
+          <SectionTitle>TripKit만의 특별한 혜택</SectionTitle>
+          <SectionSubtitle>
+            정밀한 진단부터 완벽한 여행 계획까지, 모든 것을 한 번에
+          </SectionSubtitle>
+          
+          <BenefitsList>
+            {benefits.map((benefit, index) => (
+              <BenefitItem
+                key={index}
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <BenefitIcon>
+                  <FaCheck />
+                </BenefitIcon>
+                <BenefitText>{benefit}</BenefitText>
+              </BenefitItem>
+            ))}
+          </BenefitsList>
+        </FeaturesContainer>
+      </BenefitsSection>
+
+      <DestinationsPreview>
+        <FeaturesContainer>
+          <SectionTitle>어떤 여행지를 추천받을 수 있나요?</SectionTitle>
+          <SectionSubtitle>
+            당신의 성향에 따라 이런 특별한 여행지들을 만날 수 있어요
+          </SectionSubtitle>
+          
+          <DestinationGrid>
+            {sampleDestinations.map((destination, index) => (
+              <DestinationCard
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                whileHover={{ scale: 1.05 }}
+              >
+                <DestinationImage $bgColor={destination.bgColor}>
+                  {destination.name}
+                </DestinationImage>
+                <DestinationContent>
+                  <DestinationName>{destination.name}</DestinationName>
+                  <DestinationDescription>{destination.desc}</DestinationDescription>
+                </DestinationContent>
+              </DestinationCard>
+            ))}
+          </DestinationGrid>
+        </FeaturesContainer>
+      </DestinationsPreview>
     </HomeContainer>
   );
 };
