@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { FaMapMarkedAlt, FaHeart, FaUsers, FaLeaf, FaUtensils, FaCamera } from 'react-icons/fa';
+import { FaMapMarkedAlt, FaHeart, FaUsers, FaLeaf, FaUtensils, FaCamera, FaUserFriends, FaEdit, FaPlus } from 'react-icons/fa';
 
 const HomeContainer = styled.div`
   min-height: 100vh;
@@ -106,7 +106,7 @@ const StyleGrid = styled.div`
   margin: 0 auto;
 `;
 
-const StyleCard = styled(motion.div)`
+const StyleCard = styled(motion.div)<{ $isCustom?: boolean }>`
   background: white;
   padding: 2rem;
   border-radius: 20px;
@@ -114,6 +114,7 @@ const StyleCard = styled(motion.div)`
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   transition: all 0.3s ease;
+  border: ${props => props.$isCustom ? '2px dashed #667eea' : 'none'};
   
   &:hover {
     transform: translateY(-10px);
@@ -137,6 +138,44 @@ const StyleTitle = styled.h3`
 const StyleDescription = styled.p`
   color: #64748b;
   line-height: 1.6;
+`;
+
+const CustomInputContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+`;
+
+const CustomInput = styled.input`
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 1rem;
+  outline: none;
+  
+  &:focus {
+    border-color: #667eea;
+  }
+`;
+
+const AddCustomButton = styled.button`
+  background: #10b981;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  
+  &:hover {
+    background: #059669;
+    transform: translateY(-2px);
+  }
 `;
 
 const KeywordSection = styled.section`
@@ -240,10 +279,16 @@ const Tag = styled.span`
 
 const travelStyles = [
   {
-    id: 'family',
+    id: 'family-kids',
     title: '아이와 함께',
     description: '아이들이 좋아할 만한 장소와 활동을 중심으로 한 여행',
     icon: <FaUsers />
+  },
+  {
+    id: 'family-parents',
+    title: '부모님과 함께',
+    description: '부모님이 편안하게 즐길 수 있는 여유로운 여행',
+    icon: <FaUserFriends />
   },
   {
     id: 'couple',
@@ -262,6 +307,13 @@ const travelStyles = [
     title: '친구들과',
     description: '함께 즐기고 추억을 나눌 수 있는 여행',
     icon: <FaUsers />
+  },
+  {
+    id: 'custom',
+    title: '직접 입력하기',
+    description: '원하는 여행 스타일을 직접 입력해보세요',
+    icon: <FaEdit />,
+    isCustom: true
   }
 ];
 
@@ -292,6 +344,9 @@ const destinations = [
 
 const HomePage: React.FC = () => {
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
+  const [selectedTravelStyle, setSelectedTravelStyle] = useState<string>('');
+  const [customTravelStyle, setCustomTravelStyle] = useState<string>('');
+  const [customStyles, setCustomStyles] = useState<string[]>([]);
 
   const handleKeywordClick = (keyword: string) => {
     setSelectedKeywords(prev => 
@@ -299,6 +354,20 @@ const HomePage: React.FC = () => {
         ? prev.filter(k => k !== keyword)
         : [...prev, keyword]
     );
+  };
+
+  const handleTravelStyleClick = (styleId: string) => {
+    setSelectedTravelStyle(styleId);
+    if (styleId !== 'custom') {
+      setCustomTravelStyle('');
+    }
+  };
+
+  const handleAddCustomStyle = () => {
+    if (customTravelStyle.trim() && !customStyles.includes(customTravelStyle.trim())) {
+      setCustomStyles(prev => [...prev, customTravelStyle.trim()]);
+      setCustomTravelStyle('');
+    }
   };
 
   return (
@@ -335,14 +404,42 @@ const HomePage: React.FC = () => {
           {travelStyles.map((style, index) => (
             <StyleCard
               key={style.id}
+              $isCustom={style.isCustom}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               whileHover={{ scale: 1.05 }}
+              onClick={() => handleTravelStyleClick(style.id)}
             >
               <StyleIcon>{style.icon}</StyleIcon>
               <StyleTitle>{style.title}</StyleTitle>
               <StyleDescription>{style.description}</StyleDescription>
+              
+              {style.isCustom && selectedTravelStyle === 'custom' && (
+                <CustomInputContainer>
+                  <CustomInput
+                    type="text"
+                    placeholder="원하는 여행 스타일을 입력하세요..."
+                    value={customTravelStyle}
+                    onChange={(e) => setCustomTravelStyle(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddCustomStyle()}
+                  />
+                  <AddCustomButton onClick={handleAddCustomStyle}>
+                    <FaPlus />
+                    추가하기
+                  </AddCustomButton>
+                  {customStyles.length > 0 && (
+                    <div style={{ marginTop: '1rem', textAlign: 'left' }}>
+                      <strong>추가된 스타일:</strong>
+                      {customStyles.map((style, idx) => (
+                        <div key={idx} style={{ marginTop: '0.5rem', padding: '0.5rem', background: '#f1f5f9', borderRadius: '8px' }}>
+                          {style}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CustomInputContainer>
+              )}
             </StyleCard>
           ))}
         </StyleGrid>
@@ -399,12 +496,3 @@ const HomePage: React.FC = () => {
 };
 
 export default HomePage;
-
-
-
-
-
-
-
-
-
