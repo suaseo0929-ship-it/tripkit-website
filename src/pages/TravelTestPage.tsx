@@ -582,15 +582,19 @@ const TravelTestPage: React.FC = () => {
     // 필터링된 질문 수가 변경되면 현재 질문 인덱스 조정
     if (filteredCount > 0) {
       if (currentQuestion >= filteredCount) {
+        console.log(`🔄 Adjusting currentQuestion from ${currentQuestion} to ${filteredCount - 1}`);
         setCurrentQuestion(filteredCount - 1);
       }
     } else {
       // 필터링된 질문이 없으면 첫 번째 질문으로
-      setCurrentQuestion(0);
+      if (currentQuestion !== 0) {
+        console.log(`🔄 Resetting currentQuestion to 0`);
+        setCurrentQuestion(0);
+      }
     }
     
     console.log(`📊 Questions: ${allQuestions.length} → ${filteredCount} (current: ${currentQuestion})`);
-  }, [filteredQuestions.length, allQuestions.length]);
+  }, [filteredQuestions.length, allQuestions.length]); // currentQuestion 제거하여 무한 루프 방지
 
   const handleOptionSelect = (optionId: string) => {
     const currentQ = filteredQuestions[currentQuestion];
