@@ -535,7 +535,7 @@ const TravelTestPage: React.FC = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<{ [key: number]: string | string[] }>({});
   const [showResult, setShowResult] = useState(false);
-  const [debugMode, setDebugMode] = useState(false);
+  const [debugMode, setDebugMode] = useState(true); // 🔧 강제로 디버그 모드 켜기
   const router = useRouter();
 
   // 🔧 동적으로 질문 필터링 (수정된 로직)
@@ -543,13 +543,16 @@ const TravelTestPage: React.FC = () => {
     const allAnswerValues = Object.values(answers).flat();
     console.log('🔍 Current answers:', allAnswerValues);
     console.log('🔍 Answer keys:', Object.keys(answers));
+    console.log('🔍 All answer values:', allAnswerValues);
     
     const filtered = allQuestions.filter(question => {
       // skipIf 조건 체크 - 특정 답변이 있으면 해당 질문 스킵
       if (question.condition?.skipIf) {
-        const shouldSkip = question.condition.skipIf.some(skipValue => 
-          allAnswerValues.includes(skipValue)
-        );
+        const shouldSkip = question.condition.skipIf.some(skipValue => {
+          const hasValue = allAnswerValues.includes(skipValue);
+          console.log(`🔍 Question ${question.id}: checking skipIf "${skipValue}" = ${hasValue}`);
+          return hasValue;
+        });
         if (shouldSkip) {
           console.log(`🚫 Skipping question ${question.id}: ${question.question} (skipIf: ${question.condition.skipIf})`);
           return false;
@@ -572,6 +575,7 @@ const TravelTestPage: React.FC = () => {
     
     console.log(`📊 Filtered questions: ${allQuestions.length} → ${filtered.length}`);
     console.log(`📋 Active questions:`, filtered.map(q => q.id));
+    console.log(`📋 Skipped questions:`, allQuestions.filter(q => !filtered.includes(q)).map(q => q.id));
     return filtered;
   }, [answers]);
 
