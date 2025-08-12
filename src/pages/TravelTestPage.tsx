@@ -239,6 +239,20 @@ const ActionButton = styled.button`
   }
 `;
 
+// 🔧 추가된 디버그 패널
+const DebugPanel = styled.div`
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  max-width: 300px;
+  z-index: 1000;
+`;
+
 interface Option {
   id: string;
   text: string;
@@ -536,76 +550,71 @@ const TravelTestPage: React.FC = () => {
   const [answers, setAnswers] = useState<{ [key: number]: string | string[] }>({});
   const [showResult, setShowResult] = useState(false);
   const [debugMode, setDebugMode] = useState(true);
+  const [forceRerender, setForceRerender] = useState(0); // 🔧 강제 리렌더링용
   const router = useRouter();
 
-  // 🔧 개선된 동적 질문 필터링
+  // 🔧 더 강력한 동적 질문 필터링
   const filteredQuestions = useMemo(() => {
-    const allAnswerValues = Object.values(answers).flat();
+    // 모든 답변 값들을 평면화
+    const allAnswerValues: string[] = [];
+    Object.values(answers).forEach(answer => {
+      if (Array.isArray(answer)) {
+        allAnswerValues.push(...answer);
+      } else if (answer) {
+        allAnswerValues.push(answer);
+      }
+    });
     
-    console.log('=== 🔍 동적 흐름 디버그 시작 ===');
-    console.log('📝 현재 답변:', answers);
-    console.log('💬 모든 답변 값들:', allAnswerValues);
+    console.log('🔥 필터링 시작');
+    console.log('📝 현재 answers:', JSON.stringify(answers, null, 2));
+    console.log('💬 allAnswerValues:', allAnswerValues);
     
-    const activeQuestions = allQuestions.filter(question => {
-      // skipIf 조건 확인
+    // 각 질문에 대해 조건 체크
+    const activeQuestions = allQuestions.filter((question, index) => {
+      // skipIf 조건이 있는지 확인
       if (question.condition?.skipIf) {
-        const shouldSkip = question.condition.skipIf.some(skipValue => 
-          allAnswerValues.includes(skipValue)
-        );
+        const shouldSkip = question.condition.skipIf.some(skipValue => {
+          const isIncluded = allAnswerValues.includes(skipValue);
+          console.log(`❓ 질문 ${question.id}: skipIf "${skipValue}" 체크 -> ${isIncluded ? '스킵!' : '유지'}`);
+          return isIncluded;
+        });
         
         if (shouldSkip) {
-          console.log(`🚫 질문 ${question.id} 스킵: "${question.question}"`);
+          console.log(`🚫 질문 ${question.id} 스킵됨: "${question.question}"`);
           return false;
         }
       }
       
-      // showIf 조건 확인 (필요한 경우)
+      // showIf 조건이 있다면 체크 (현재는 없지만 향후 확장용)
       if (question.condition?.showIf) {
         const shouldShow = question.condition.showIf.some(showValue => 
           allAnswerValues.includes(showValue)
         );
-        
         if (!shouldShow) {
           console.log(`🚫 질문 ${question.id} 조건 미충족: "${question.question}"`);
           return false;
         }
       }
       
+      console.log(`✅ 질문 ${question.id} 유지: "${question.question}"`);
       return true;
     });
     
-    console.log(`📊 결과: 전체 ${allQuestions.length}개 → 활성 ${activeQuestions.length}개`);
-    console.log(`✅ 활성 질문 ID들:`, activeQuestions.map(q => q.id));
-    console.log('=== 🔍 동적 흐름 디버그 끝 ===');
+    console.log(`📊 최종 결과: ${allQuestions.length}개 → ${activeQuestions.length}개`);
+    console.log(`🎯 활성 질문들:`, activeQuestions.map(q => `${q.id}: ${q.question.substring(0, 20)}...`));
     
     return activeQuestions;
-  }, [answers]);
+  }, [answers, forceRerender]); // forceRerender도 의존성에 추가
 
-  // 🔧 개선된 질문 인덱스 관리
-  const findNextValidQuestionIndex = useCallback((fromIndex: number): number => {
-    if (fromIndex >= filteredQuestions.length) {
-      return filteredQuestions.length - 1;
-    }
-    return fromIndex;
-  }, [filteredQuestions.length]);
-
-  // 🔧 상태 업데이트 시 질문 인덱스 조정
-  useEffect(() => {
-    if (filteredQuestions.length === 0) return;
-    
-    const validIndex = findNextValidQuestionIndex(currentQuestion);
-    if (validIndex !== currentQuestion) {
-      console.log(`🔄 질문 인덱스 조정: ${currentQuestion} → ${validIndex}`);
-      setCurrentQuestion(validIndex);
-    }
-  }, [filteredQuestions, currentQuestion, findNextValidQuestionIndex]);
-
-  // 🔧 개선된 답변 선택 핸들러
+  // 🔧 답변 선택 핸들러 (개선됨)
   const handleOptionSelect = useCallback((optionId: string) => {
     const currentQ = filteredQuestions[currentQuestion];
-    if (!currentQ) return;
+    if (!currentQ) {
+      console.error('❌ 현재 질문이 없습니다!');
+      return;
+    }
     
-    console.log(`🎯 답변 선택: 질문 ${currentQ.id}에서 "${optionId}" 선택됨`);
+    console.log(`🎯 답변 선택: 질문 ${currentQ.id}에서 "${optionId}" 선택`);
     
     setAnswers(prevAnswers => {
       let newAnswers;
@@ -627,37 +636,57 @@ const TravelTestPage: React.FC = () => {
         };
       }
       
-      console.log(`🔄 답변 업데이트:`, newAnswers);
+      console.log(`🔄 답변 업데이트됨:`, newAnswers);
+      
+      // 🔧 상태 업데이트 후 강제 리렌더링
+      setTimeout(() => {
+        setForceRerender(prev => prev + 1);
+      }, 50);
+      
       return newAnswers;
     });
   }, [filteredQuestions, currentQuestion]);
 
-  // 🔧 개선된 네비게이션 핸들러
+  // 🔧 질문 네비게이션 (개선됨)
   const handleNext = useCallback(() => {
+    console.log(`➡️ 다음 버튼 클릭 (현재: ${currentQuestion}/${filteredQuestions.length - 1})`);
+    
     if (currentQuestion < filteredQuestions.length - 1) {
       const nextIndex = currentQuestion + 1;
-      const validNextIndex = findNextValidQuestionIndex(nextIndex);
-      console.log(`➡️ 다음 질문으로: ${currentQuestion} → ${validNextIndex}`);
-      setCurrentQuestion(validNextIndex);
+      console.log(`➡️ 다음 질문으로 이동: ${currentQuestion} → ${nextIndex}`);
+      setCurrentQuestion(nextIndex);
     } else {
-      console.log(`🎉 테스트 완료 - 결과 화면으로`);
+      console.log(`🎉 테스트 완료! 결과 화면으로 이동`);
       setShowResult(true);
     }
-  }, [currentQuestion, filteredQuestions.length, findNextValidQuestionIndex]);
+  }, [currentQuestion, filteredQuestions.length]);
 
   const handlePrevious = useCallback(() => {
     if (currentQuestion > 0) {
-      const prevIndex = Math.max(0, currentQuestion - 1);
-      console.log(`⬅️ 이전 질문으로: ${currentQuestion} → ${prevIndex}`);
+      const prevIndex = currentQuestion - 1;
+      console.log(`⬅️ 이전 질문으로 이동: ${currentQuestion} → ${prevIndex}`);
       setCurrentQuestion(prevIndex);
     }
   }, [currentQuestion]);
 
+  // 🔧 질문 인덱스 유효성 검사 및 자동 조정
+  useEffect(() => {
+    if (filteredQuestions.length === 0) return;
+    
+    // 현재 질문 인덱스가 유효한 범위에 있는지 확인
+    if (currentQuestion >= filteredQuestions.length) {
+      const newIndex = Math.max(0, filteredQuestions.length - 1);
+      console.log(`⚠️ 질문 인덱스 범위 초과! ${currentQuestion} → ${newIndex}`);
+      setCurrentQuestion(newIndex);
+    }
+  }, [filteredQuestions.length, currentQuestion]);
+
   const getCurrentAnswers = useCallback(() => {
     const currentQ = filteredQuestions[currentQuestion];
-    if (!currentQ) return currentQ?.type === 'multiple' ? [] : '';
+    if (!currentQ) return '';
     
-    return answers[currentQ.id] || (currentQ.type === 'multiple' ? [] : '');
+    const answer = answers[currentQ.id];
+    return answer || (currentQ.type === 'multiple' ? [] : '');
   }, [filteredQuestions, currentQuestion, answers]);
 
   const isAnswerSelected = useCallback(() => {
@@ -720,6 +749,24 @@ const TravelTestPage: React.FC = () => {
     router.push('/');
   };
 
+  // 🔧 로딩 중 화면
+  if (filteredQuestions.length === 0) {
+    return (
+      <TestContainer>
+        <TestCard>
+          <div>질문을 준비하고 있습니다...</div>
+          {debugMode && (
+            <div style={{ marginTop: '2rem', fontSize: '0.8rem', color: '#666' }}>
+              <div>전체 질문 수: {allQuestions.length}</div>
+              <div>현재 답변: {JSON.stringify(answers)}</div>
+            </div>
+          )}
+        </TestCard>
+      </TestContainer>
+    );
+  }
+
+  // 🔧 결과 화면
   if (showResult) {
     const result = getRecommendations();
     
@@ -784,51 +831,47 @@ const TravelTestPage: React.FC = () => {
     );
   }
 
-  if (filteredQuestions.length === 0) {
+  const currentQ = filteredQuestions[currentQuestion];
+  if (!currentQ) {
+    console.error('❌ 현재 질문이 존재하지 않습니다!');
     return (
       <TestContainer>
         <TestCard>
-          <div>로딩 중...</div>
+          <div>질문을 불러오는 중 오류가 발생했습니다.</div>
         </TestCard>
       </TestContainer>
     );
   }
 
-  const currentQ = filteredQuestions[currentQuestion];
   const currentAnswers = getCurrentAnswers();
   const progress = ((currentQuestion + 1) / filteredQuestions.length) * 100;
 
   return (
     <TestContainer>
+      {/* 🔧 디버그 패널 */}
+      {debugMode && (
+        <DebugPanel>
+          <div><strong>🔧 디버그 정보</strong></div>
+          <div>현재 질문: {currentQ.id} ({currentQuestion + 1}/{filteredQuestions.length})</div>
+          <div>전체 질문: {allQuestions.length}개</div>
+          <div>활성 질문: {filteredQuestions.map(q => q.id).join(', ')}</div>
+          <div>현재 답변: {JSON.stringify(answers)}</div>
+          <div>모든 답변값: {Object.values(answers).flat().join(', ')}</div>
+          <div>조건: {currentQ.condition?.skipIf ? `스킵(${currentQ.condition.skipIf.join(',')})` : '없음'}</div>
+          <div>스킵된 질문: {allQuestions.filter(q => 
+            q.condition?.skipIf && 
+            q.condition.skipIf.some(skip => Object.values(answers).flat().includes(skip))
+          ).map(q => q.id).join(', ') || '없음'}</div>
+        </DebugPanel>
+      )}
+
       <TestCard
+        key={currentQuestion} // 🔧 키 추가로 강제 리렌더링
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
         <div>
-          {/* 🔧 디버그 모드 토글 */}
-          <div style={{ 
-            position: 'absolute', 
-            top: '1rem', 
-            right: '1rem', 
-            zIndex: 10 
-          }}>
-            <button
-              disabled
-              style={{
-                background: '#10b981',
-                color: 'white',
-                border: 'none',
-                padding: '0.5rem 1rem',
-                borderRadius: '20px',
-                fontSize: '0.8rem',
-                cursor: 'not-allowed'
-              }}
-            >
-              🔧 디버그 강제 ON (수정 불가)
-            </button>
-          </div>
-          
           <ProgressBar>
             <ProgressFill
               initial={{ width: 0 }}
@@ -840,28 +883,8 @@ const TravelTestPage: React.FC = () => {
           <QuestionNumber>
             질문 {currentQuestion + 1} / {filteredQuestions.length}
             <span style={{ fontSize: '0.7rem', color: '#64748b', marginLeft: '1rem' }}>
-              (전체 {allQuestions.length}개 중 {filteredQuestions.length}개 활성)
+              (ID: {currentQ.id}, 전체: {allQuestions.length})
             </span>
-            {debugMode && (
-              <>
-                <br />
-                <span style={{ fontSize: '0.7rem', color: '#10b981', marginTop: '0.5rem', display: 'block' }}>
-                  🔧 현재 질문 ID: {currentQ.id} | 조건: {currentQ.condition?.skipIf ? `스킵조건(${currentQ.condition.skipIf.join(', ')})` : '없음'}
-                </span>
-                <span style={{ fontSize: '0.7rem', color: '#f59e0b', marginTop: '0.25rem', display: 'block' }}>
-                  📝 답변 키: {Object.keys(answers).join(', ')} | 값: {Object.values(answers).flat().join(', ')}
-                </span>
-                <span style={{ fontSize: '0.7rem', color: '#ef4444', marginTop: '0.25rem', display: 'block' }}>
-                  🎯 스킵된 질문 ID: {allQuestions.filter(q => 
-                    q.condition?.skipIf && 
-                    q.condition.skipIf.some(skipValue => Object.values(answers).flat().includes(skipValue))
-                  ).map(q => q.id).join(', ') || '없음'}
-                </span>
-                <span style={{ fontSize: '0.7rem', color: '#8b5cf6', marginTop: '0.25rem', display: 'block' }}>
-                  🔍 활성 질문 ID: {filteredQuestions.map(q => q.id).join(', ')}
-                </span>
-              </>
-            )}
           </QuestionNumber>
           
           <QuestionTitle>{currentQ.question}</QuestionTitle>
