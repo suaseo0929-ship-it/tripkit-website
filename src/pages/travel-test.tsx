@@ -1,6 +1,6 @@
 import React from 'react';
 
-const TravelTestPage = () => {
+const TravelTest = () => {
   return (
     <div style={{
       position: 'fixed',
@@ -16,7 +16,6 @@ const TravelTestPage = () => {
       fontSize: '24px',
       fontWeight: 'bold'
     }}>
-      {/* 🚨 매우 눈에 띄는 테스트 패널 */}
       <div style={{
         position: 'fixed',
         top: '20px',
@@ -33,7 +32,7 @@ const TravelTestPage = () => {
       }}>
         🚨 TEST VERSION WORKING! 🚨
         <br />
-        성공적으로 로드됨!
+        JavaScript 버전 성공!
       </div>
       
       <div style={{
@@ -43,10 +42,10 @@ const TravelTestPage = () => {
         borderRadius: '20px'
       }}>
         <h1>TripKit 여행 성향 테스트</h1>
-        <p>테스트 버전이 정상 작동 중입니다!</p>
+        <p>JavaScript 테스트 버전이 정상 작동 중입니다!</p>
       </div>
     </div>
   );
 };
 
-export default TravelTestPage;
+export default TravelTest;
