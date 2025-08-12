@@ -535,73 +535,64 @@ const TravelTestPage: React.FC = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<{ [key: number]: string | string[] }>({});
   const [showResult, setShowResult] = useState(false);
-  const [debugMode, setDebugMode] = useState(true); // 🔧 강제로 디버그 모드 켜기
+  const [debugMode, setDebugMode] = useState(true); // 🔧 강제로 디버그 모드 켜기 (수정 불가)
   const router = useRouter();
 
-  // 🔧 동적으로 질문 필터링 (수정된 로직)
+  // 🔧 간단하고 확실한 동적 질문 필터링
   const filteredQuestions = useMemo(() => {
     const allAnswerValues = Object.values(answers).flat();
-    console.log('🔍 Current answers:', allAnswerValues);
-    console.log('🔍 Answer keys:', Object.keys(answers));
-    console.log('🔍 All answer values:', allAnswerValues);
     
-    const filtered = allQuestions.filter(question => {
-      // skipIf 조건 체크 - 특정 답변이 있으면 해당 질문 스킵
-      if (question.condition?.skipIf) {
-        const shouldSkip = question.condition.skipIf.some(skipValue => {
-          const hasValue = allAnswerValues.includes(skipValue);
-          console.log(`🔍 Question ${question.id}: checking skipIf "${skipValue}" = ${hasValue}`);
-          return hasValue;
-        });
-        if (shouldSkip) {
-          console.log(`🚫 Skipping question ${question.id}: ${question.question} (skipIf: ${question.condition.skipIf})`);
-          return false;
-        }
+    // 🔍 디버그: 현재 답변 상태 출력
+    console.log('=== 🔍 동적 흐름 디버그 시작 ===');
+    console.log('📝 현재 답변:', answers);
+    console.log('🔑 답변 키들:', Object.keys(answers));
+    console.log('💬 모든 답변 값들:', allAnswerValues);
+    
+    // 🚫 스킵할 질문들 찾기
+    const questionsToSkip = allQuestions.filter(question => {
+      if (!question.condition?.skipIf) return false;
+      
+      const shouldSkip = question.condition.skipIf.some(skipValue => 
+        allAnswerValues.includes(skipValue)
+      );
+      
+      if (shouldSkip) {
+        console.log(`🚫 질문 ${question.id} 스킵: "${question.question}" (조건: ${question.condition.skipIf.join(', ')})`);
       }
       
-      // showIf 조건 체크 - 특정 답변이 있어야만 해당 질문 표시
-      if (question.condition?.showIf) {
-        const shouldShow = question.condition.showIf.some(showValue => 
-          allAnswerValues.includes(showValue)
-        );
-        if (!shouldShow) {
-          console.log(`👁️ Hiding question ${question.id}: ${question.question} (showIf: ${question.condition.showIf})`);
-          return false;
-        }
-      }
-      
-      return true;
+      return shouldSkip;
     });
     
-    console.log(`📊 Filtered questions: ${allQuestions.length} → ${filtered.length}`);
-    console.log(`📋 Active questions:`, filtered.map(q => q.id));
-    console.log(`📋 Skipped questions:`, allQuestions.filter(q => !filtered.includes(q)).map(q => q.id));
-    return filtered;
+    // ✅ 표시할 질문들만 필터링
+    const activeQuestions = allQuestions.filter(question => 
+      !questionsToSkip.includes(question)
+    );
+    
+    console.log(`📊 결과: 전체 ${allQuestions.length}개 → 활성 ${activeQuestions.length}개`);
+    console.log(`🎯 스킵된 질문 ID들:`, questionsToSkip.map(q => q.id));
+    console.log(`✅ 활성 질문 ID들:`, activeQuestions.map(q => q.id));
+    console.log('=== 🔍 동적 흐름 디버그 끝 ===');
+    
+    return activeQuestions;
   }, [answers]);
 
-  // 🔧 동적 질문 필터링에 따른 상태 관리 개선
+  // 🔧 간단한 상태 관리
   useEffect(() => {
     const filteredCount = filteredQuestions.length;
     
-    // 필터링된 질문 수가 변경되면 현재 질문 인덱스 조정
-    if (filteredCount > 0) {
-      if (currentQuestion >= filteredCount) {
-        console.log(`🔄 Adjusting currentQuestion from ${currentQuestion} to ${filteredCount - 1}`);
-        setCurrentQuestion(filteredCount - 1);
-      }
-    } else {
-      // 필터링된 질문이 없으면 첫 번째 질문으로
-      if (currentQuestion !== 0) {
-        console.log(`🔄 Resetting currentQuestion to 0`);
-        setCurrentQuestion(0);
-      }
-    }
+    console.log(`🔄 질문 수 변경 감지: ${filteredCount}개`);
     
-    console.log(`📊 Questions: ${allQuestions.length} → ${filteredCount} (current: ${currentQuestion})`);
-  }, [filteredQuestions.length, allQuestions.length]); // currentQuestion 제거하여 무한 루프 방지
+    // 현재 질문 인덱스가 범위를 벗어나면 조정
+    if (filteredCount > 0 && currentQuestion >= filteredCount) {
+      console.log(`🔄 currentQuestion 조정: ${currentQuestion} → ${filteredCount - 1}`);
+      setCurrentQuestion(filteredCount - 1);
+    }
+  }, [filteredQuestions.length, currentQuestion]);
 
   const handleOptionSelect = (optionId: string) => {
     const currentQ = filteredQuestions[currentQuestion];
+    
+    console.log(`🎯 답변 선택: 질문 ${currentQ.id}에서 "${optionId}" 선택됨`);
     
     if (currentQ.type === 'multiple') {
       const currentAnswers = (answers[currentQ.id] as string[]) || [];
@@ -620,9 +611,7 @@ const TravelTestPage: React.FC = () => {
       }));
     }
     
-    console.log(`✅ Selected: ${optionId} for question ${currentQ.id} (original ID)`);
-    console.log(`🔄 Answers updated:`, { ...answers, [currentQ.id]: optionId });
-    console.log(`🔍 Will trigger re-filtering for answers:`, Object.values({ ...answers, [currentQ.id]: optionId }).flat());
+    console.log(`🔄 답변 업데이트 완료:`, { ...answers, [currentQ.id]: optionId });
   };
 
   const handleNext = () => {
@@ -797,20 +786,20 @@ const TravelTestPage: React.FC = () => {
             right: '1rem', 
             zIndex: 10 
           }}>
-            <button
-              onClick={() => setDebugMode(!debugMode)}
-              style={{
-                background: debugMode ? '#10b981' : '#64748b',
-                color: 'white',
-                border: 'none',
-                padding: '0.5rem 1rem',
-                borderRadius: '20px',
-                fontSize: '0.8rem',
-                cursor: 'pointer'
-              }}
-            >
-              {debugMode ? '🔧 디버그 ON' : '🔧 디버그 OFF'}
-            </button>
+                         <button
+               disabled
+               style={{
+                 background: '#10b981',
+                 color: 'white',
+                 border: 'none',
+                 padding: '0.5rem 1rem',
+                 borderRadius: '20px',
+                 fontSize: '0.8rem',
+                 cursor: 'not-allowed'
+               }}
+             >
+               🔧 디버그 강제 ON (수정 불가)
+             </button>
           </div>
           
           <ProgressBar>
